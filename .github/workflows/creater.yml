@@ -1,0 +1,46 @@
+name: Build and Download AnythingLLM Docker Image
+
+on:
+  push:
+    branches:
+      - main  # 在 main 分支有更新时触发此 workflow
+  workflow_dispatch: # 支持手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v3
+
+    - name: Clone AnythingLLM repository
+      run: |
+        git clone https://github.com/Mintplex-Labs/anything-llm.git
+        cd anything-llm
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-docker-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-docker-
+
+    - name: Build AnythingLLM Docker image
+      run: |
+        cd anything-llm
+        docker build -t anythingllm:${{ github.sha }} .
+
+    - name: Save Docker image to tar
+      run: |
+        docker save anythingllm:${{ github.sha }} -o anythingllm-${{ github.sha }}.tar
+
+    - name: Upload Docker image as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: anythingllm-docker-image
+        path: anythingllm-${{ github.sha }}.tar
