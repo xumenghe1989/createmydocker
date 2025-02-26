@@ -33,7 +33,7 @@ jobs:
     - name: Build AnythingLLM Docker image
       run: |
         cd anything-llm
-        docker build -t anythingllm:${{ github.sha }} .
+        docker build -t anythingllm:${{ github.sha }} -f ./docker/Dockerfile .
 
     - name: Save Docker image to tar
       run: |
